@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+
+{% block title %}Upload Game - ZipDaddy Hub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-upload"></i> Upload New Game
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-controller"></i> Game Title *
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       required maxlength="100" placeholder="Enter game title">
+                                <div class="form-text">Must be unique</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="download_link" class="form-label">
+                                    <i class="bi bi-download"></i> Download Link *
+                                </label>
+                                <input type="url" class="form-control" id="download_link" name="download_link" 
+                                       required placeholder="https://example.com/game-download">
+                                <div class="form-text">Must start with http:// or https://</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="bi bi-text-paragraph"></i> Description
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4" 
+                                  placeholder="Enter game description..."></textarea>
+                        <div class="form-text">Provide a detailed description of the game</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="genres" class="form-label">
+                                    <i class="bi bi-tags"></i> Genres
+                                </label>
+                                <input type="text" class="form-control" id="genres" name="genres" 
+                                       placeholder="Action, Adventure, Shooter">
+                                <div class="form-text">Comma-separated list (e.g., Action, RPG, Strategy)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cover_image" class="form-label">
+                                    <i class="bi bi-image"></i> Cover Image URL
+                                </label>
+                                <input type="url" class="form-control" id="cover_image" name="cover_image" 
+                                       placeholder="https://example.com/cover.jpg">
+                                <div class="form-text">Optional: URL to game cover image</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview Section -->
+                    <div class="mb-4">
+                        <h5>
+                            <i class="bi bi-eye"></i> Preview
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div id="preview-content">
+                                    <div class="text-muted">Fill out the form to see a preview</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-upload"></i> Upload Game
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Live preview functionality
+function updatePreview() {
+    const title = document.getElementById('title').value || 'Game Title';
+    const description = document.getElementById('description').value || 'No description provided.';
+    const genres = document.getElementById('genres').value;
+    const coverImage = document.getElementById('cover_image').value;
+    
+    let genreBadges = '';
+    if (genres) {
+        const genreList = genres.split(',').map(g => g.trim()).filter(g => g);
+        genreBadges = genreList.map(genre => 
+            `<span class="badge bg-primary me-1">${genre}</span>`
+        ).join('');
+    }
+    
+    const imageSection = coverImage ? 
+        `<img src="${coverImage}" class="img-fluid mb-3" style="max-height: 200px; object-fit: cover;" onerror="this.style.display='none'">` : 
+        '<div class="bg-secondary text-white text-center py-5 mb-3"><i class="bi bi-controller display-4"></i></div>';
+    
+    document.getElementById('preview-content').innerHTML = `
+        ${imageSection}
+        <h5>${title}</h5>
+        <div class="mb-2">${genreBadges}</div>
+        <p class="text-muted">${description.substring(0, 100)}${description.length > 100 ? '...' : ''}</p>
+    `;
+}
+
+// Add event listeners for live preview
+document.getElementById('title').addEventListener('input', updatePreview);
+document.getElementById('description').addEventListener('input', updatePreview);
+document.getElementById('genres').addEventListener('input', updatePreview);
+document.getElementById('cover_image').addEventListener('input', updatePreview);
+
+// Initial preview
+updatePreview();
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: zipdaddy-hub
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 1 main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: zipdaddy-db
+          property: connectionString
+    healthCheckPath: /
+    
+databases:
+  - name: zipdaddy-db
+    databaseName: zipdaddy_hub
+    user: zipdaddy_user

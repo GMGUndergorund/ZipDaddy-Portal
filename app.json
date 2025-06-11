@@ -1,0 +1,36 @@
+{
+  "name": "ZipDaddy Hub",
+  "description": "A modern, secure, and stylish game sharing and management platform built with Flask",
+  "repository": "https://github.com/your-username/zipdaddy-hub",
+  "logo": "https://via.placeholder.com/512x512.png?text=ZipDaddy+Hub",
+  "keywords": ["flask", "games", "sharing", "python", "bootstrap"],
+  "image": "heroku/python",
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "env": {
+    "SESSION_SECRET": {
+      "description": "A secret key for Flask sessions",
+      "generator": "secret"
+    },
+    "FLASK_ENV": {
+      "value": "production"
+    }
+  },
+  "scripts": {
+    "postdeploy": "python -c \"from app import app, db; app.app_context().push(); db.create_all()\""
+  }
+}

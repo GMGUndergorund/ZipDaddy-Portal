@@ -1,0 +1,163 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ game.title }} - ZipDaddy Hub{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active">{{ game.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Game Cover Image -->
+    <div class="col-lg-4 mb-4">
+        {% if game.cover_image %}
+            <img src="{{ game.cover_image }}" class="img-fluid rounded shadow" alt="{{ game.title }}">
+        {% else %}
+            <div class="bg-light rounded text-center py-5 shadow">
+                <i class="bi bi-controller display-1 text-muted"></i>
+                <p class="text-muted mt-3">No cover image</p>
+            </div>
+        {% endif %}
+        
+        <!-- Admin Actions -->
+        {% if is_admin %}
+        <div class="mt-3">
+            <h6>Admin Actions</h6>
+            <div class="btn-group-vertical w-100">
+                <a href="{{ url_for('edit_game', game_id=game.id) }}" class="btn btn-outline-warning">
+                    <i class="bi bi-pencil"></i> Edit Game
+                </a>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <i class="bi bi-trash"></i> Delete Game
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Game Information -->
+    <div class="col-lg-8">
+        <div class="mb-4">
+            <h1 class="display-4 mb-3">{{ game.title }}</h1>
+            
+            <!-- Genre Badges -->
+            {% if game.genres %}
+            <div class="mb-3">
+                {% for genre in game.get_genres_list() %}
+                    <a href="{{ url_for('genre_page', genre_name=genre) }}" 
+                       class="badge bg-primary fs-6 text-decoration-none me-2 mb-1">{{ genre }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Download Button -->
+            <div class="mb-4">
+                <a href="{{ game.download_link }}" class="btn btn-success btn-lg" target="_blank" rel="noopener">
+                    <i class="bi bi-download"></i> Download Game
+                </a>
+                <small class="text-muted d-block mt-2">
+                    <i class="bi bi-info-circle"></i> Opens in new tab
+                </small>
+            </div>
+            
+            <!-- Game Description -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-text-paragraph"></i> Description
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if game.description %}
+                        <div class="game-description">
+                            {{ game.description | replace('\n', '<br>') | safe }}
+                        </div>
+                    {% else %}
+                        <p class="text-muted fst-italic">No description available for this game.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Game Meta Information -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-info-circle"></i> Game Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <strong>Upload Date:</strong><br>
+                            <span class="text-muted">{{ game.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                        </div>
+                        <div class="col-sm-6">
+                            <strong>Download Link:</strong><br>
+                            <a href="{{ game.download_link }}" class="text-break" target="_blank" rel="noopener">
+                                {{ game.download_link[:50] }}{% if game.download_link|length > 50 %}...{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Similar Games Section -->
+<div class="row mt-5">
+    <div class="col-12">
+        <h3>
+            <i class="bi bi-collection"></i> More Games
+        </h3>
+        <hr>
+        <div class="text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Browse All Games
+            </a>
+            {% if game.genres %}
+                {% set first_genre = game.get_genres_list()[0] %}
+                <a href="{{ url_for('genre_page', genre_name=first_genre) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-tags"></i> More {{ first_genre }} Games
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if is_admin %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-warning"></i> Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<strong>{{ game.title }}</strong>"?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_game', game_id=game.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete Game
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

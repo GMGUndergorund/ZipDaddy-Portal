@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit {{ game.title }} - ZipDaddy Hub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-pencil"></i> Edit Game: {{ game.title }}
+                </h3>
+            </div>
+            
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">
+                                    <i class="bi bi-controller"></i> Game Title *
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       required maxlength="100" value="{{ game.title }}">
+                                <div class="form-text">Must be unique</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="download_link" class="form-label">
+                                    <i class="bi bi-download"></i> Download Link *
+                                </label>
+                                <input type="url" class="form-control" id="download_link" name="download_link" 
+                                       required value="{{ game.download_link }}">
+                                <div class="form-text">Must start with http:// or https://</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">
+                            <i class="bi bi-text-paragraph"></i> Description
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ game.description or '' }}</textarea>
+                        <div class="form-text">Provide a detailed description of the game</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="genres" class="form-label">
+                                    <i class="bi bi-tags"></i> Genres
+                                </label>
+                                <input type="text" class="form-control" id="genres" name="genres" 
+                                       value="{{ game.genres or '' }}">
+                                <div class="form-text">Comma-separated list (e.g., Action, RPG, Strategy)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cover_image" class="form-label">
+                                    <i class="bi bi-image"></i> Cover Image URL
+                                </label>
+                                <input type="url" class="form-control" id="cover_image" name="cover_image" 
+                                       value="{{ game.cover_image or '' }}">
+                                <div class="form-text">Optional: URL to game cover image</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Preview -->
+                    <div class="mb-4">
+                        <h5>
+                            <i class="bi bi-eye"></i> Current Preview
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        {% if game.cover_image %}
+                                            <img src="{{ game.cover_image }}" class="img-fluid rounded" alt="{{ game.title }}">
+                                        {% else %}
+                                            <div class="bg-secondary text-white text-center py-4 rounded">
+                                                <i class="bi bi-controller display-6"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6>{{ game.title }}</h6>
+                                        {% if game.genres %}
+                                            <div class="mb-2">
+                                                {% for genre in game.get_genres_list() %}
+                                                    <span class="badge bg-primary me-1">{{ genre }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        <p class="text-muted small">{{ game.get_short_description() }}</p>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> {{ game.created_at.strftime('%B %d, %Y') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Live Preview -->
+                    <div class="mb-4">
+                        <h5>
+                            <i class="bi bi-eye"></i> Live Preview
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div id="preview-content">
+                                    <!-- Live preview will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{{ url_for('game_detail', game_id=game.id) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Game
+                            </a>
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+                                <i class="bi bi-speedometer2"></i> Dashboard
+                            </a>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-check-circle"></i> Update Game
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Live preview functionality
+function updatePreview() {
+    const title = document.getElementById('title').value || 'Game Title';
+    const description = document.getElementById('description').value || 'No description provided.';
+    const genres = document.getElementById('genres').value;
+    const coverImage = document.getElementById('cover_image').value;
+    
+    let genreBadges = '';
+    if (genres) {
+        const genreList = genres.split(',').map(g => g.trim()).filter(g => g);
+        genreBadges = genreList.map(genre => 
+            `<span class="badge bg-primary me-1">${genre}</span>`
+        ).join('');
+    }
+    
+    const imageSection = coverImage ? 
+        `<div class="row"><div class="col-md-4"><img src="${coverImage}" class="img-fluid rounded" onerror="this.parentElement.innerHTML='<div class=\\'bg-secondary text-white text-center py-4 rounded\\'><i class=\\'bi bi-controller display-6\\'></i></div>'"></div><div class="col-md-8">` : 
+        '<div class="row"><div class="col-md-4"><div class="bg-secondary text-white text-center py-4 rounded"><i class="bi bi-controller display-6"></i></div></div><div class="col-md-8">';
+    
+    document.getElementById('preview-content').innerHTML = `
+        ${imageSection}
+            <h6>${title}</h6>
+            <div class="mb-2">${genreBadges}</div>
+            <p class="text-muted small">${description.substring(0, 100)}${description.length > 100 ? '...' : ''}</p>
+            <small class="text-muted">
+                <i class="bi bi-calendar"></i> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </small>
+        </div></div>
+    `;
+}
+
+// Add event listeners for live preview
+document.getElementById('title').addEventListener('input', updatePreview);
+document.getElementById('description').addEventListener('input', updatePreview);
+document.getElementById('genres').addEventListener('input', updatePreview);
+document.getElementById('cover_image').addEventListener('input', updatePreview);
+
+// Initial preview
+updatePreview();
+</script>
+{% endblock %}
